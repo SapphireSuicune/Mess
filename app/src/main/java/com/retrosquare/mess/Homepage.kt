@@ -4,6 +4,8 @@ import android.os.Bundle
 import android.content.Intent
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.ui.res.painterResource
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Box
@@ -35,6 +37,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.material3.ExperimentalMaterial3Api
+import com.retrosquare.mess.R
 
 @Composable
 fun MessCard(sender: String, message: String, timestamp: Long) {
@@ -57,6 +60,13 @@ fun MessCard(sender: String, message: String, timestamp: Long) {
             Text(
                 text = message,
                 style = MaterialTheme.typography.bodyMedium
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+            
+            Text(
+                text = "Saved ${parseTimestamp(timestamp)}",
+                style = MaterialTheme.typography.bodySmall,
             )
         }
     }
@@ -99,7 +109,11 @@ fun MessList(innerPadding: PaddingValues) {
 fun MessTopAppBar() {
     CenterAlignedTopAppBar(
         title = {
-            Text("Mess!")
+            Image(
+                painter = painterResource(id = R.drawable.mess_wordmark),
+                contentDescription = "Mess!",
+                modifier = Modifier.height(32.dp)
+            )
         }
     )
 }
