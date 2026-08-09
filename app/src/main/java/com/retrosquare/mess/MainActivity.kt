@@ -22,60 +22,80 @@ import android.widget.Toast
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import androidx.core.content.pm.ShortcutManagerCompat
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableStateOf
+
+private val appScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
 class MainActivity : ComponentActivity() {
+
+    private var pendingText by mutableStateOf<String?>(null)
+    private var pendingSender by mutableStateOf("")
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val sharedText = if (intent?.action == Intent.ACTION_SEND && intent.type == "text/plain") {
-            intent.getStringExtra(Intent.EXTRA_TEXT)
-        } else {
-            null
-        }
+        if (handleShareIntent(intent)) return   // was a share → we're done, finishing
 
-        if (sharedText != null) {
-            // 1. Get the last recorded sender from NotificationListener
-            val prefs = getSharedPreferences("MessPrefs", Context.MODE_PRIVATE)
-            val lastSender = prefs.getString("LAST_SENDER", "{unknown}") ?: "{unknown}"
+        setContent {
+            MessTheme {
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = MaterialTheme.colorScheme.background
+                ) {
+                    Scaffold(topBar = { MessTopAppBar() }) { innerPadding ->
+                        MessList(innerPadding = innerPadding)
 
-            // 2. Save the memory
-            saveMessage(sender = lastSender, message = sharedText)
-
-            // 3. Show a toast showing who was tagged
-            Toast.makeText(this, "Saved message from $lastSender!", Toast.LENGTH_SHORT).show()
-
-            // 4. Return to Google Messages instantly
-            finish()
-        } else {
-            setContent {
-                MessTheme {
-                    Surface(
-                        modifier = Modifier.fillMaxSize(),
-                        color = MaterialTheme.colorScheme.background
-                    ) {
-                        Scaffold(
-                            topBar = { MessTopAppBar() }
-                        ) { innerPadding -> 
-                                MessList(innerPadding = innerPadding)
-                            }
+                        pendingText?.let { text ->
+                            SenderPromptDialog(
+                                message = text,
+                                initialSender = pendingSender,
+                                onSave = { name ->
+                                    saveMessage(name, text)
+                                    pendingText = null
+                                    finish()
+                                },
+                                onDismiss = {
+                                    pendingText = null
+                                    finish()
+                                }
+                            )
+                        }
                     }
                 }
             }
         }
     }
 
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        handleShareIntent(intent)
+    }
+
+    private fun handleShareIntent(intent: Intent?): Boolean {
+        if (intent?.action != Intent.ACTION_SEND || intent.type != "text/plain") return false
+        val sharedText = intent.getStringExtra(Intent.EXTRA_TEXT) ?: return false
+
+        pendingSender = intent.getStringExtra(ShortcutManagerCompat.EXTRA_SHORTCUT_ID)
+            ?.removePrefix("sender_")
+            ?: ""
+
+        pendingText = sharedText
+        return false
+    }
+
     private fun saveMessage(sender: String, message: String) {
-        // Run database operation in a background thread using Coroutines
-        lifecycleScope.launch(Dispatchers.IO) {
-            val db = AppDatabase.getDatabase(applicationContext)
-            
-            val newMess = Mess(
-                sender = sender,
-                message = message,
-                timestamp = System.currentTimeMillis()
+        val app = applicationContext
+        appScope.launch {
+            AppDatabase.getDatabase(app).messDao().insertMess(
+                Mess(sender = sender, message = message, timestamp = System.currentTimeMillis())
             )
-            
-            db.messDao().insertMess(newMess)
+            if (sender.isNotBlank()) publishSenderShortcut(app, sender)
         }
     }
 }

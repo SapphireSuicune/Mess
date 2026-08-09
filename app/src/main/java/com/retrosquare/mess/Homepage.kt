@@ -12,11 +12,16 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Card
 import androidx.compose.material3.Text
@@ -34,40 +39,84 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
 import com.retrosquare.mess.R
 
 @Composable
-fun MessCard(sender: String, message: String, timestamp: Long) {
+fun MessCard(
+        mess: Mess,
+        onDeleteClick: () -> Unit = {},
+        onShareClick: () -> Unit = {} ) {
     Card(
         modifier = Modifier.fillMaxWidth(0.9f)
     ) {
-        // A Column lets us stack Sender, Message, and Timestamp vertically!
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp) // Gives room around the text inside the card
+        Box(
+            modifier = Modifier.fillMaxWidth()
         ) {
-            Text(
-                text = sender,
-                style = MaterialTheme.typography.titleMedium
-            )
-            
-            Spacer(modifier = Modifier.height(8.dp))
-            
-            Text(
-                text = message,
-                style = MaterialTheme.typography.bodyMedium
-            )
+            Row(
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(top = 8.dp, end = 8.dp)
+            ) {
+                IconButton(
+                    onClick = onShareClick,
+                    modifier = Modifier
+                        .size(32.dp)
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.share_24px),
+                        contentDescription = "Share",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
 
-            Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.width(8.dp))
+
+                IconButton(
+                    onClick = onDeleteClick,
+                    modifier = Modifier
+                        .size(32.dp)
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.delete_24px),
+                        contentDescription = "Delete",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
             
-            Text(
-                text = "Saved ${parseTimestamp(timestamp)}",
-                style = MaterialTheme.typography.bodySmall,
-            )
+            // A Column lets us stack Sender, Message, and Timestamp vertically!
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 16.dp, bottom = 16.dp, start = 16.dp, end = 48.dp) // Gives room around the text inside the card
+            ) {
+                Text(
+                    text = mess.sender,
+                    style = MaterialTheme.typography.titleMedium
+                )
+                
+                Spacer(modifier = Modifier.height(8.dp))
+                
+                Text(
+                    text = mess.message,
+                    style = MaterialTheme.typography.bodyMedium
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+                
+                Text(
+                    text = "Saved ${parseTimestamp(mess.timestamp)}",
+                    style = MaterialTheme.typography.bodySmall,
+                )
+            }
         }
     }
 }
@@ -77,8 +126,12 @@ fun MessCard(sender: String, message: String, timestamp: Long) {
 fun MessList(innerPadding: PaddingValues) {
     val ctx = LocalContext.current
     val db = AppDatabase.getDatabase(ctx)
+    val scope = rememberCoroutineScope()
 
-    val messList by db.messDao().getAllMesses().collectAsState(initial = emptyList())
+    val messList by remember { db.messDao().getAllMesses() }
+        .collectAsState(initial = emptyList())
+    
+    var messToDelete by remember { mutableStateOf<Mess?>(null) }
 
     LazyColumn(
         modifier = Modifier
@@ -93,14 +146,23 @@ fun MessList(innerPadding: PaddingValues) {
         verticalArrangement = Arrangement.spacedBy(12.dp), // Spacing between each card!
         horizontalAlignment = Alignment.CenterHorizontally // Centers each card horizontally
     ) {
-        // Generate 15 dummy cards to test scrolling
-        items(messList) { mess ->
+        items(messList, key = { it.id }) { mess ->
             MessCard(
-                sender = mess.sender,
-                message = mess.message,
-                timestamp = mess.timestamp
+                mess = mess,
+                onDeleteClick = { messToDelete = mess },
+                onShareClick = { shareMess(ctx, mess) }
             )
         }
+    }
+    
+    messToDelete?.let { target ->
+        DeleteMessConfirmationDialog(
+            mess = target,
+            onConfirm = {
+                scope.launch { db.messDao().deleteMess(target) }
+                messToDelete = null },
+            onDismiss = { messToDelete = null }
+        )
     }
 }
 
@@ -111,7 +173,7 @@ fun MessTopAppBar() {
         title = {
             Image(
                 painter = painterResource(id = R.drawable.mess_wordmark),
-                contentDescription = "Mess!",
+                contentDescription = "Mess",
                 modifier = Modifier.height(32.dp)
             )
         }
