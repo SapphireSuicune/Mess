@@ -171,10 +171,11 @@ fun MessList(innerPadding: PaddingValues) {
 fun MessTopAppBar() {
     CenterAlignedTopAppBar(
         title = {
-            Image(
+            Icon(
                 painter = painterResource(id = R.drawable.mess_wordmark),
                 contentDescription = "Mess",
-                modifier = Modifier.height(32.dp)
+                modifier = Modifier.height(32.dp),
+                tint = MaterialTheme.colorScheme.onSurface
             )
         }
     )
