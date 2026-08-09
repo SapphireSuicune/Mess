@@ -44,7 +44,7 @@ fun shareMess(ctx: Context, mess: Mess) {
         ${ mess.sender } said:
         "${ mess.message }"
 
-        Sent from Mess! App
+        Sent from Mess App
     """.trimIndent()
 
     val sendIntent = Intent(Intent.ACTION_SEND).apply {
