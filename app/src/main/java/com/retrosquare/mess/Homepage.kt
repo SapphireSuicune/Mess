@@ -168,8 +168,18 @@ fun MessList(innerPadding: PaddingValues) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MessTopAppBar() {
+fun MessTopAppBar(
+        onMenuClick: () -> Unit = {}
+    ) {
     CenterAlignedTopAppBar(
+        navigationIcon = {
+            IconButton(onClick = onMenuClick) {
+                Icon(
+                    painter = painterResource(id = R.drawable.menu_24px),
+                    contentDescription = "Menu"
+                )
+            }
+        },
         title = {
             Icon(
                 painter = painterResource(id = R.drawable.mess_wordmark),

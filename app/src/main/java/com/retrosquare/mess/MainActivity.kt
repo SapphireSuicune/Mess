@@ -28,6 +28,9 @@ import kotlinx.coroutines.SupervisorJob
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.material3.rememberDrawerState
+import androidx.compose.material3.DrawerValue
+import androidx.compose.runtime.rememberCoroutineScope
 
 private val appScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
@@ -43,27 +46,38 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             MessTheme {
+                val drawerState = rememberDrawerState(DrawerValue.Closed)
+                val scope = rememberCoroutineScope()
+                
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    Scaffold(topBar = { MessTopAppBar() }) { innerPadding ->
-                        MessList(innerPadding = innerPadding)
+                    MessAppMenu(drawerState = drawerState) {
+                        Scaffold(
+                            topBar = {
+                                MessTopAppBar(
+                                    onMenuClick = { scope.launch { drawerState.open() } }
+                                )
+                            }
+                        ) { innerPadding ->
+                            MessList(innerPadding = innerPadding)
 
-                        pendingText?.let { text ->
-                            SenderPromptDialog(
-                                message = text,
-                                initialSender = pendingSender,
-                                onSave = { name ->
-                                    saveMessage(name, text)
-                                    pendingText = null
-                                    finish()
-                                },
-                                onDismiss = {
-                                    pendingText = null
-                                    finish()
-                                }
-                            )
+                            pendingText?.let { text ->
+                                SenderPromptDialog(
+                                    message = text,
+                                    initialSender = pendingSender,
+                                    onSave = { name ->
+                                        saveMessage(name, text)
+                                        pendingText = null
+                                        finish()
+                                    },
+                                    onDismiss = {
+                                        pendingText = null
+                                        finish()
+                                    }
+                                )
+                            }
                         }
                     }
                 }
