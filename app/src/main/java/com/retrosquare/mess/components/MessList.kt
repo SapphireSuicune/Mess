@@ -49,78 +49,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import kotlinx.coroutines.launch
 import com.retrosquare.mess.R
 
-@Composable
-fun MessCard(
-        mess: Mess,
-        onDeleteClick: () -> Unit = {},
-        onShareClick: () -> Unit = {} ) {
-    Card(
-        modifier = Modifier.fillMaxWidth(0.9f)
-    ) {
-        Box(
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Row(
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(top = 8.dp, end = 8.dp)
-            ) {
-                IconButton(
-                    onClick = onShareClick,
-                    modifier = Modifier
-                        .size(32.dp)
-                ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.share_24px),
-                        contentDescription = "Share",
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-
-                Spacer(modifier = Modifier.width(8.dp))
-
-                IconButton(
-                    onClick = onDeleteClick,
-                    modifier = Modifier
-                        .size(32.dp)
-                ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.delete_24px),
-                        contentDescription = "Delete",
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-            
-            // A Column lets us stack Sender, Message, and Timestamp vertically!
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 16.dp, bottom = 16.dp, start = 16.dp, end = 48.dp) // Gives room around the text inside the card
-            ) {
-                Text(
-                    text = mess.sender,
-                    style = MaterialTheme.typography.titleMedium
-                )
-                
-                Spacer(modifier = Modifier.height(8.dp))
-                
-                Text(
-                    text = mess.message,
-                    style = MaterialTheme.typography.bodyMedium
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-                
-                Text(
-                    text = "Saved ${parseTimestamp(mess.timestamp)}",
-                    style = MaterialTheme.typography.bodySmall,
-                )
-            }
-        }
-    }
-}
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MessList(innerPadding: PaddingValues) {
@@ -164,29 +92,4 @@ fun MessList(innerPadding: PaddingValues) {
             onDismiss = { messToDelete = null }
         )
     }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun MessTopAppBar(
-        onMenuClick: () -> Unit = {}
-    ) {
-    CenterAlignedTopAppBar(
-        navigationIcon = {
-            IconButton(onClick = onMenuClick) {
-                Icon(
-                    painter = painterResource(id = R.drawable.menu_24px),
-                    contentDescription = "Menu"
-                )
-            }
-        },
-        title = {
-            Icon(
-                painter = painterResource(id = R.drawable.mess_wordmark),
-                contentDescription = "Mess",
-                modifier = Modifier.height(32.dp),
-                tint = MaterialTheme.colorScheme.onSurface
-            )
-        }
-    )
 }

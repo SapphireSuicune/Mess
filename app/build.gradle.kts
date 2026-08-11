@@ -59,4 +59,11 @@ dependencies {
     implementation("androidx.room:room-runtime:$roomVersion")
     implementation("androidx.room:room-ktx:$roomVersion")
     ksp("androidx.room:room-compiler:$roomVersion")
+
+    implementation("androidx.navigation:navigation-compose:2.9.8")
+    implementation("androidx.navigation:navigation-fragment:2.9.8")
+    implementation("androidx.navigation:navigation-ui:2.9.8")
+    implementation("androidx.navigation:navigation-dynamic-features-fragment:2.9.8")
+    androidTestImplementation("androidx.navigation:navigation-testing:2.9.8")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
 }

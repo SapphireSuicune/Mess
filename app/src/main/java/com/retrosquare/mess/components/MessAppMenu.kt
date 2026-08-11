@@ -6,6 +6,7 @@ import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.DrawerState
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.ui.Modifier
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -16,10 +17,14 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.Icon
 import androidx.compose.ui.res.painterResource
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.ui.Alignment
 
 @Composable
 fun MessAppMenu(
     drawerState: DrawerState,
+    currentRoute: String?,
+    onMessesClick: () -> Unit = {},
+    onQuotesClick: () -> Unit = {},
     onPeopleClick: () -> Unit = {},
     onCollectionsClick: () -> Unit = {},
     onSettingsClick: () -> Unit = {},
@@ -33,10 +38,48 @@ fun MessAppMenu(
                     modifier = Modifier.height(12.dp)
                 )
 
+                Icon(
+                    painter = painterResource(id = R.drawable.mess_wordmark),
+                    contentDescription = "Mess",
+                    modifier = Modifier
+                        .height(48.dp)
+                        .padding(bottom = 16.dp)
+                        .align(Alignment.CenterHorizontally),
+                    tint = MaterialTheme.colorScheme.onSurface
+                )
+
+                // Messes
+                NavigationDrawerItem(
+                    label = { Text("Messes") },
+                    selected = currentRoute == "home",
+                    onClick = onMessesClick,
+                    modifier = Modifier.padding(horizontal = 12.dp),
+                    icon = {
+                        Icon(
+                            painter = painterResource(id = R.drawable.mop_24px),
+                            contentDescription = null
+                        )
+                    }
+                )
+
+                // Quotes
+                NavigationDrawerItem(
+                    label = { Text("Quotes") },
+                    selected = currentRoute == "quotes",
+                    onClick = onQuotesClick,
+                    modifier = Modifier.padding(horizontal = 12.dp),
+                    icon = {
+                        Icon(
+                            painter = painterResource(id = R.drawable.forum_24px),
+                            contentDescription = null
+                        )
+                    }
+                )
+
                 // People
                 NavigationDrawerItem(
                     label = { Text("People") },
-                    selected = false,
+                    selected = currentRoute == "people",
                     onClick = onPeopleClick,
                     modifier = Modifier.padding(horizontal = 12.dp),
                     icon = {
@@ -50,7 +93,7 @@ fun MessAppMenu(
                 // Collections
                 NavigationDrawerItem(
                     label = { Text("Collections") },
-                    selected = false,
+                    selected = currentRoute == "collections",
                     onClick = onCollectionsClick,
                     modifier = Modifier.padding(horizontal = 12.dp),
                     icon = {
@@ -61,10 +104,14 @@ fun MessAppMenu(
                     }
                 )
 
+                Spacer(Modifier.weight(1f))
+
+                HorizontalDivider(Modifier.padding(horizontal = 12.dp))
+
                 // Settings
                 NavigationDrawerItem(
                     label = { Text("Settings") },
-                    selected = false,
+                    selected = currentRoute == "settings",
                     onClick = onSettingsClick,
                     modifier = Modifier.padding(horizontal = 12.dp),
                     icon = {
