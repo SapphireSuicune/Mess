@@ -19,4 +19,7 @@ interface MessDao {
     // Automatically emits an updated list whenever a new message is saved!
     @Query("SELECT * FROM messes ORDER BY timestamp DESC")
     fun getAllMesses(): Flow<List<Mess>>
+
+    @Query("SELECT DISTINCT sender FROM messes WHERE sender != '' ORDER BY sender")
+    fun getAllSenders(): Flow<List<String>>
 }

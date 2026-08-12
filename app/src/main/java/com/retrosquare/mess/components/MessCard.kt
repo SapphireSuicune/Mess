@@ -41,6 +41,8 @@ import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -50,10 +52,37 @@ import kotlinx.coroutines.launch
 import com.retrosquare.mess.R
 
 @Composable
+fun MessMoreMenu(
+    expanded: Boolean,
+    onDismiss: () -> Unit,
+    onAddToCollectionClick: () -> Unit
+) {
+    DropdownMenu(
+        expanded = expanded,
+        onDismissRequest = onDismiss
+    ) {
+        DropdownMenuItem(
+            text = { Text("Add to collection") },
+            onClick = onAddToCollectionClick,
+            leadingIcon = {
+                Icon(
+                    painter = painterResource(id = R.drawable.library_add_24px),
+                    contentDescription = null
+                )
+            }
+        )
+    }
+}
+
+@Composable
 fun MessCard(
         mess: Mess,
+        onAddToCollectionClick: () -> Unit = {},
         onDeleteClick: () -> Unit = {},
-        onShareClick: () -> Unit = {} ) {
+        onShareClick: () -> Unit = {} 
+) {
+    var menuOpen by remember { mutableStateOf(false) }
+
     Card(
         modifier = Modifier.fillMaxWidth(0.9f)
     ) {
@@ -65,6 +94,31 @@ fun MessCard(
                     .align(Alignment.TopEnd)
                     .padding(top = 8.dp, end = 8.dp)
             ) {
+                Box {
+                    IconButton(
+                        onClick = { menuOpen = true },
+                        modifier = Modifier
+                            .size(32.dp)
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.more_vert_24px),
+                            contentDescription = "More",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+
+                    MessMoreMenu(
+                        expanded = menuOpen,
+                        onDismiss = { menuOpen = false},
+                        onAddToCollectionClick = {
+                            menuOpen = false
+                            onAddToCollectionClick()
+                        }
+                    )
+                } 
+
+                Spacer(modifier = Modifier.width(8.dp))
+
                 IconButton(
                     onClick = onShareClick,
                     modifier = Modifier

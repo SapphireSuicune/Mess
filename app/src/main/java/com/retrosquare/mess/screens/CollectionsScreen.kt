@@ -17,6 +17,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableStateOf
@@ -25,7 +27,6 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.Alignment
@@ -46,29 +47,47 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import kotlinx.coroutines.launch
 import com.retrosquare.mess.R
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.items
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.NavController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.rememberDrawerState
+import androidx.compose.material3.DrawerValue
 
 
 @Composable
-fun PeopleList(innerPadding: PaddingValues) {
-    val ctx = LocalContext.current
-    val db = AppDatabase.getDatabase(ctx)
-    val people by remember { db.messDao().getAllSenders() }
-        .collectAsState(initial = emptyList())
-
-    LazyVerticalGrid(
-        columns = GridCells.Fixed(2),
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(innerPadding),
-        contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(24.dp),
-        horizontalArrangement = Arrangement.spacedBy(24.dp)
+fun CollectionsScreen(
+        navController: NavController,
+        currentRoute: String?
     ) {
-        items(people, key = { it }) { person ->
-            PersonCard(name = person)
+    val drawerState = rememberDrawerState(DrawerValue.Closed)
+    val scope = rememberCoroutineScope()
+
+    MessAppMenu(
+        drawerState = drawerState,
+        currentRoute = currentRoute,
+        onMessesClick = {
+            scope.launch { drawerState.close() }
+            navController.navigate("home")
+        },
+        onPeopleClick = {
+            scope.launch { drawerState.close() }
+            navController.navigate("people")
+        },
+        onSettingsClick = {
+            scope.launch { drawerState.close() }
+            navController.navigate("settings")
+        },
+    ) {
+        Scaffold(
+            topBar = {
+                MessTopAppBar(
+                    onMenuClick = { scope.launch { drawerState.open() } }
+                )
+            }
+        ) { innerPadding ->
+            PeopleList(innerPadding = innerPadding)
         }
     }
 }

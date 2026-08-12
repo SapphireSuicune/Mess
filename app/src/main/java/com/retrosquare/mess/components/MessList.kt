@@ -59,7 +59,11 @@ fun MessList(innerPadding: PaddingValues) {
     val messList by remember { db.messDao().getAllMesses() }
         .collectAsState(initial = emptyList())
     
+    val collections by remember  { db.collectionDao().getAllCollections() }
+        .collectAsState(initial = emptyList())
+    
     var messToDelete by remember { mutableStateOf<Mess?>(null) }
+    var messToAddToCollection by remember { mutableStateOf<Mess?>(null) }
 
     LazyColumn(
         modifier = Modifier
@@ -77,6 +81,7 @@ fun MessList(innerPadding: PaddingValues) {
         items(messList, key = { it.id }) { mess ->
             MessCard(
                 mess = mess,
+                onAddToCollectionClick = { messToAddToCollection = mess },
                 onDeleteClick = { messToDelete = mess },
                 onShareClick = { shareMess(ctx, mess) }
             )
@@ -90,6 +95,22 @@ fun MessList(innerPadding: PaddingValues) {
                 scope.launch { db.messDao().deleteMess(target) }
                 messToDelete = null },
             onDismiss = { messToDelete = null }
+        )
+    }
+
+    messToAddToCollection?.let { target ->
+        CollectionPickerDialog(
+            mess = target,
+            collections = collections,
+            onPick = { coll ->
+                scope.launch {
+                    db.collectionDao().addMessToCollection(
+                        MessInCollection(messId = target.id, collectionId = coll.id)
+                    )
+                }
+                messToAddToCollection = null
+            },
+            onDismiss = { messToAddToCollection = null }
         )
     }
 }

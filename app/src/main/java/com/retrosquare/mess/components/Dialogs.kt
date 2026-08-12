@@ -52,6 +52,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
+import androidx.compose.foundation.clickable
 import com.retrosquare.mess.R
 
 @Composable
@@ -108,6 +109,40 @@ fun SenderPromptDialog(
                 enabled = name.isNotBlank()
             ) { Text("Save") }
         },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text("Cancel") }
+        }
+    )
+}
+
+@Composable
+fun CollectionPickerDialog(
+    mess: Mess,
+    collections: List<MessCollection>,
+    onPick: (MessCollection) -> Unit,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Add to collection") },
+        text = {
+            if (collections.isEmpty()) {
+                Text("No collections yet. Make one first!")
+            } else {
+                LazyColumn {
+                    items(collections, key = { it.id }) { coll ->
+                        Text(
+                            text = coll.name,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { onPick(coll) }
+                                .padding(vertical = 14.dp)
+                        )
+                    }
+                }
+            }
+        },
+        confirmButton = {},
         dismissButton = {
             TextButton(onClick = onDismiss) { Text("Cancel") }
         }

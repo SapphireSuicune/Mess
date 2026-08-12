@@ -59,6 +59,7 @@ class MainActivity : ComponentActivity() {
                     NavHost(navController, startDestination = "home") {
                         composable("home") { Homepage(navController, currentRoute) }
                         composable("people") { PeopleScreen(navController, currentRoute) }
+                        composable("collections") { CollectionsScreen(navController, currentRoute) }
                     }
 
                     pendingText?.let { text ->
